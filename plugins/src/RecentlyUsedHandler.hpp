@@ -1,19 +1,3 @@
-#ifndef __RecentlyUsedHandler_HPP_INCLUDED__
-#define __RecentlyUsedHandler_HPP_INCLUDED__
-
-#include "ActivityEntry.hpp"
-
-#include <KActivities/Stats/Query>
-#include <KActivities/Stats/Terms>
-
-#include <memory>
-
-#include <QDBusConnection>
-#include <QDBusInterface>
-
-#include <QObject>
-#include <QQmlListProperty>
-#include <QTimer>
 /*
  *   Copyright (c) 2018 Dennis Scheffer.
  *   
@@ -32,6 +16,23 @@
  *   You should have received a copy of the GNU General Public License
  *   along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+#ifndef __RecentlyUsedHandler_HPP_INCLUDED__
+#define __RecentlyUsedHandler_HPP_INCLUDED__
+
+#include "ActivityEntry.hpp"
+
+#include <KActivities/Stats/Query>
+#include <KActivities/Stats/Terms>
+
+#include <memory>
+
+#include <QDBusConnection>
+#include <QDBusInterface>
+
+#include <QObject>
+#include <QQmlListProperty>
+#include <QTimer>
 
 #include <QVector>
 
