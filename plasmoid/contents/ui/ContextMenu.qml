@@ -24,215 +24,189 @@ import org.kde.plasma.core 2.0 as PlasmaCore
 
 import dscheffer.minimalmenuplugin 0.1
 
-Item {
-    id: ctxMenuWrapperWrapper
-    width: ctxMenuWrapper.width
-    height: ctxMenuWrapper.height
+PlasmaCore.Dialog {
+    id: dialog
+    property var hide
 
-    Component {
-        id: submenuItem
-        PlasmaComponents.MenuItem {
-            property string name
-            property string iconRes
-            property string resource
-            property string mimetype
+    hideOnWindowDeactivate: true
+    visible: false
 
-            text: name
-            icon: iconRes
+    backgroundHints: PlasmaCore.Types.NoBackground
 
-            onClicked: {
-                ApplicationLauncher.launch(resource, mimetype);
-            }
-        }
-    }
+    mainItem: Item {
+        width: ctxMenu.width
+        height: ctxMenu.height
 
-    Connections {
-        target: RecentlyUsedHandler
-        onUpdated: {
-            for(var i = 0; i < RecentlyUsedHandler.recentlyUsed.length; i++) {
-                var item = RecentlyUsedHandler.recentlyUsed[i];
-                var params = {};
-                params.resource = item.resource;
-                params.name = item.name;
-                params.iconRes = item.icon;
-                params.mimetype = item.mimetype;
-                var item = submenuItem.createObject(submenu, params);
-            }
-        }
-    }
+        Component {
+            id: submenuItem
+            PlasmaComponents.MenuItem {
+                property string name
+                property string iconRes
+                property string resource
+                property string mimetype
 
-    Component.onCompleted: {
-        RecentlyUsedHandler.update();
-    }
+                text: name
+                icon: iconRes
 
-    Item {
-        id: ctxMenuWrapper
-        width: 300
-
-        function open(x, y) {
-            ctxMenuWrapper.x = x;
-            ctxMenuWrapper.y = y;
-            ctxMenu.open(0, 0);
-        }
-
-        function close() {
-            ctxMenu.close();
-        }
-
-        Timer {
-            id: updateTimer
-            interval: 2000
-            repeat: true
-            running: true
-
-            property int count: 0
-
-            onTriggered: {
-                if (isClosed()) {
-                    for(var i = submenu.content.length-1; i >= 0 ; i--) {
-                        var item = submenu.content[i];
-                        submenu.removeMenuItem(item);
-                        item.destroy();
-                    };
-                    gc();
-                    RecentlyUsedHandler.update();
+                onClicked: {
+                    ApplicationLauncher.launch(resource, mimetype);
                 }
+            }
+        }
 
-                if (count == 0) {
+        Connections {
+            target: RecentlyUsedHandler
+            onUpdated: {
+                for(var i = 0; i < RecentlyUsedHandler.recentlyUsed.length; i++) {
+                    var item = RecentlyUsedHandler.recentlyUsed[i];
+                    var params = {};
+                    params.resource = item.resource;
+                    params.name = item.name;
+                    params.iconRes = item.icon;
+                    params.mimetype = item.mimetype;
+                    var item = submenuItem.createObject(submenu, params);
+                }
+            }
+        }
+
+        Component.onCompleted: {
+            RecentlyUsedHandler.update();
+        }
+
+        Item {
+            id: ctxMenuWrapper
+            width: 300
+
+            function open() {
+                ctxMenu.open(0, 0);
+            }
+
+            function close() {
+                ctxMenu.close();
+            }
+
+            Timer {
+                id: updateTimer
+                interval: 2000
+                repeat: true
+                running: true
+
+                property int count: 0
+
+                onTriggered: {
+                    if (isClosed()) {
+                        for(var i = submenu.content.length-1; i >= 0 ; i--) {
+                            var item = submenu.content[i];
+                            submenu.removeMenuItem(item);
+                            item.destroy();
+                        };
+                        gc();
+                        RecentlyUsedHandler.update();
+                    }
+
+                    if (count == 0) {
+                        ctxMenu.updateCount = ApplicationLauncher.getUpdateCount();
+                    }
+                    count = (count + 1) % 30;
+                }
+            }
+
+            PlasmaComponents.Menu {
+                id: ctxMenu
+                minimumWidth: ctxMenuWrapper.width
+                
+                Component.onCompleted: {
                     ctxMenu.updateCount = ApplicationLauncher.getUpdateCount();
                 }
-                count = (count + 1) % 30;
-            }
-        }
 
-        PlasmaComponents.ContextMenu {
-            id: ctxMenu
-            minimumWidth: ctxMenuWrapper.width
-            
-            Component.onCompleted: {
-                ctxMenu.updateCount = ApplicationLauncher.getUpdateCount();
-            }
+                property var updateCount: 0
 
-            property var updateCount: 0
-
-            PlasmaComponents.MenuItem {
-                text: i18n("About This Computer")
-                onClicked: {
-                    maskMouseArea.enabled = false;
-                    ApplicationLauncher.launchAboutComputer();
+                PlasmaComponents.MenuItem {
+                    text: i18n("About This Computer")
+                    onClicked: ApplicationLauncher.launchAboutComputer();
                 }
-            }
 
-            PlasmaComponents.MenuItem {
-                separator: true
-            }
-
-            PlasmaComponents.MenuItem {
-                text: i18n("System Preferences")
-                onClicked: {
-                    maskMouseArea.enabled = false;
-                    ApplicationLauncher.launchSystemPreferences();
+                PlasmaComponents.MenuItem {
+                    separator: true
                 }
-            }
 
-            PlasmaComponents.MenuItem {
-                id: softwareUpdates
-                text: ctxMenu.updateCount <= 0 ? i18n("Software Updates") : i18n("Software Updates") + "\t " + ctxMenu.updateCount
-                onClicked: {
-                    maskMouseArea.enabled = false;
-                    ApplicationLauncher.launchUpdater();
+                PlasmaComponents.MenuItem {
+                    text: i18n("System Preferences")
+                    onClicked: ApplicationLauncher.launchSystemPreferences();
                 }
-            }
 
-            PlasmaComponents.MenuItem {
-                separator: true
-            }
-
-            PlasmaComponents.MenuItem {
-                id: recentActivities
-                text: i18n("Recently Used")
-                
-                PlasmaComponents.ContextMenu {
-                    id: submenu
-                    visualParent: recentActivities.action
+                PlasmaComponents.MenuItem {
+                    id: softwareUpdates
+                    text: ctxMenu.updateCount <= 0 ? i18n("Software Updates") : i18n("Software Updates") + "\t " + ctxMenu.updateCount
+                    onClicked: ApplicationLauncher.launchUpdater();
                 }
-            }
 
-            PlasmaComponents.MenuItem {
-                separator: true
-            }
-
-            PlasmaComponents.MenuItem {
-                text: i18n("Switch User...")
-
-                onClicked: {
-                    maskMouseArea.enabled = false;
-                    KSMClient.switchUser();
+                PlasmaComponents.MenuItem {
+                    separator: true
                 }
-            }
 
-            PlasmaComponents.MenuItem {
-                text: i18n("Reboot...")
-
-                onClicked: {
-                    maskMouseArea.enabled = false;
-                    KSMClient.reboot();
+                PlasmaComponents.MenuItem {
+                    id: recentActivities
+                    text: i18n("Recently Used")
+                    
+                    PlasmaComponents.Menu {
+                        id: submenu
+                        visualParent: recentActivities.action
+                    }
                 }
-            }
 
-            PlasmaComponents.MenuItem {
-                text: i18n("Shutdown...")
-
-                onClicked: {
-                    maskMouseArea.enabled = false;
-                    KSMClient.shutdown();
+                PlasmaComponents.MenuItem {
+                    separator: true
                 }
-            }
 
-            PlasmaComponents.MenuItem {
-                separator: true
-            }
+                PlasmaComponents.MenuItem {
+                    text: i18n("Switch User...")
 
-            PlasmaComponents.MenuItem {
-                text: i18n("Log Out %1", ApplicationLauncher.getUser())
+                    onClicked: KSMClient.switchUser();
+                }
 
-                onClicked: {
-                    maskMouseArea.enabled = false;
-                    KSMClient.logout();
+                PlasmaComponents.MenuItem {
+                    text: i18n("Reboot...")
+
+                    onClicked: KSMClient.reboot();
+                }
+
+                PlasmaComponents.MenuItem {
+                    text: i18n("Shutdown...")
+
+                    onClicked: KSMClient.shutdown();
+                }
+
+                PlasmaComponents.MenuItem {
+                    separator: true
+                }
+
+                PlasmaComponents.MenuItem {
+                    text: i18n("Log Out %1", ApplicationLauncher.getUser())
+
+                    onClicked: KSMClient.logout();
                 }
             }
         }
     }
-    
 
-    MouseArea {
-        id: maskMouseArea
-        parent: getRootComponent(menu)
-        anchors.fill: parent
-        enabled: false;
-        z: -1
-        onClicked: {
-            enabled = false;
-            ctxMenu.close(); 
-        }
-
-        function getRootComponent(component) {
-            var result = component;
-            while (result.parent) {
-                result = result.parent
-            }
-            return result;
+    onVisibleChanged: {
+        if (visible == false && isOpen()) {
+            ctxMenuWrapper.close();
         }
     }
 
     function open(x, y) {
-        ctxMenuWrapper.open(x, y);
-        maskMouseArea.enabled = true;
+        var pos = menu.mapToGlobal(x, y);
+        dialog.x = pos.x;
+        dialog.y = pos.y;
+        ctxMenuWrapper.open();
+        dialog.visible = true;
     }
 
     function close() {
-        maskMouseArea.enabled = false;
         ctxMenuWrapper.close();
+        dialog.visible = false;
     }
 
     function isOpen() {

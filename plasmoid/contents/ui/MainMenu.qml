@@ -29,7 +29,6 @@ Item {
     MouseArea {
         id: menu
         anchors.fill: parent
-        z: 2
         PlasmaCore.IconItem {
             id: buttonIcon
 
@@ -42,6 +41,7 @@ Item {
 
         ContextMenu {
             id: ctxMenu
+            hide: !menu.containsMouse
         }
     
         onClicked: { 
@@ -55,13 +55,11 @@ Item {
                     y = menu.y;
                 } else if (plasmoid.location == PlasmaCore.Types.RightEdge) {
                     x = menu.x - ctxMenu.width;
-                    console.log("X " + x);
                     y = menu.y;
                 } else if (plasmoid.location == PlasmaCore.Types.BottomEdge) {
                     x = menu.x;
                     //y = menu.y - ctxMenu.childrenRect.height;
                     y = menu.y - (8*27) - (4*5); //8 Items and 4 seperators
-                    console.log("Y " + y)
                 } else {
                     x = menu.x;
                     y = menu.y + menu.height;
