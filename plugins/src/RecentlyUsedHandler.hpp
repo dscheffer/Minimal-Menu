@@ -44,7 +44,8 @@ using namespace KAStats::Terms;
 class RecentlyUsedHandler : public QObject {
     Q_OBJECT
 
-    Q_PROPERTY(QQmlListProperty<ActivityEntry> recentlyUsed READ getRecentlyUsed)
+    Q_PROPERTY(QQmlListProperty<ActivityEntry> recentlyUsedApplications READ getRecentlyUsedApplications)
+    Q_PROPERTY(QQmlListProperty<ActivityEntry> recentlyUsedDocuments READ getRecentlyUsedDocuments)
 
     const Query query = UsedResources
         | RecentlyUsedFirst
@@ -52,14 +53,16 @@ class RecentlyUsedHandler : public QObject {
         | Type::any()
         | Activity::current();
 
-    QList<ActivityEntry*> recentlyUsed;
+    QList<ActivityEntry*> recentlyUsedApplications;
+    QList<ActivityEntry*> recentlyUsedDocuments;
 public:
-    const int recentlyUsedCount = 15;
+    const int recentlyUsedCount = 10;
 
     RecentlyUsedHandler(QObject *obj = 0);
     virtual ~RecentlyUsedHandler();
 
-    QQmlListProperty<ActivityEntry> getRecentlyUsed();
+    QQmlListProperty<ActivityEntry> getRecentlyUsedApplications();
+    QQmlListProperty<ActivityEntry> getRecentlyUsedDocuments();
 public Q_SLOTS:
     void update();
 signals:

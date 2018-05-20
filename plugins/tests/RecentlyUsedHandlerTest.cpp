@@ -30,12 +30,22 @@ namespace
 /*
  * TESTS
  */
-TEST(RecentDocumentHandlerTest, GetRecentlyUsed)
+TEST(RecentDocumentHandlerTest, GetRecentlyUsedApplications)
 {
     RecentlyUsedHandler handler;
     handler.update();
 
-    QQmlListProperty<ActivityEntry> result = handler.getRecentlyUsed();
+    QQmlListProperty<ActivityEntry> result = handler.getRecentlyUsedApplications();
+    int count = result.count(&result);
+    EXPECT_EQ(handler.recentlyUsedCount, count);
+}
+
+TEST(RecentDocumentHandlerTest, GetRecentlyUsedDocuments)
+{
+    RecentlyUsedHandler handler;
+    handler.update();
+
+    QQmlListProperty<ActivityEntry> result = handler.getRecentlyUsedDocuments();
     int count = result.count(&result);
     EXPECT_EQ(handler.recentlyUsedCount, count);
 }

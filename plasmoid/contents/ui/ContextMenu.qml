@@ -49,14 +49,32 @@ Item {
     Connections {
         target: RecentlyUsedHandler
         onUpdated: {
-            for(var i = 0; i < RecentlyUsedHandler.recentlyUsed.length; i++) {
-                var item = RecentlyUsedHandler.recentlyUsed[i];
+            submenu.addSection("Applications");
+
+            for(var i = 0; i < RecentlyUsedHandler.recentlyUsedApplications.length; i++) {
+                var item = RecentlyUsedHandler.recentlyUsedApplications[i];
                 var params = {};
                 params.resource = item.resource;
                 params.name = item.name;
                 params.iconRes = item.icon;
                 params.mimetype = item.mimetype;
-                var item = submenuItem.createObject(submenu, params);
+                var item = submenuItem.createObject(null, params);
+                submenu.addMenuItem(item, null);
+            }
+
+            var item = Qt.createQmlObject("import org.kde.plasma.components 2.0 as PlasmaComponents; PlasmaComponents.MenuItem {separator: true}", submenu);
+            submenu.addMenuItem(item, null);
+            submenu.addSection("Documents");
+            
+            for(var i = 0; i < RecentlyUsedHandler.recentlyUsedDocuments.length; i++) {
+                var item = RecentlyUsedHandler.recentlyUsedDocuments[i];
+                var params = {};
+                params.resource = item.resource;
+                params.name = item.name;
+                params.iconRes = item.icon;
+                params.mimetype = item.mimetype;
+                var item = submenuItem.createObject(null, params);
+                submenu.addMenuItem(item, null);
             }
         }
     }

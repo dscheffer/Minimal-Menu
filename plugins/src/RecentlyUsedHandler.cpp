@@ -34,12 +34,13 @@ using namespace KAStats;
 using namespace KAStats::Terms;
 
 RecentlyUsedHandler::RecentlyUsedHandler(QObject *obj)
-    : QObject(obj), recentlyUsed()
+    : QObject(obj), recentlyUsedApplications(), recentlyUsedDocuments()
 { }
 
 RecentlyUsedHandler::~RecentlyUsedHandler()
 {
-    qDeleteAll(this->recentlyUsed);
+    qDeleteAll(this->recentlyUsedApplications);
+    qDeleteAll(this->recentlyUsedDocuments);
 }
 
 void RecentlyUsedHandler::update()
@@ -47,13 +48,17 @@ void RecentlyUsedHandler::update()
     std::unique_ptr<ResultSet> r(new ResultSet(query));
     ResultSet::const_iterator resultIt = r->begin();
 
-    qDeleteAll(recentlyUsed);
-    recentlyUsed.clear();
-    while (recentlyUsed.length() < recentlyUsedCount && resultIt != r->end()) {
+    qDeleteAll(recentlyUsedApplications);
+    qDeleteAll(recentlyUsedDocuments);
+    recentlyUsedApplications.clear();
+    recentlyUsedDocuments.clear();
+    while ((recentlyUsedApplications.length() < recentlyUsedCount || recentlyUsedDocuments.length() < recentlyUsedCount) 
+        && resultIt != r->end()) {
+
         QString resource = resultIt->resource();
         std::cerr << resource.toStdString() << std::endl;
         QString mimetype = resultIt->mimetype();
-        if (resource.startsWith("applications:") && mimetype.isEmpty()) {
+        if (recentlyUsedApplications.length() < recentlyUsedCount && resource.startsWith("applications:") && mimetype.isEmpty()) {
             //Try standard locations
             std::unique_ptr<KDesktopFile> desktopFile(new KDesktopFile(resource.split(":")[1]));
             QString path = QStandardPaths::locate(desktopFile->resource(), desktopFile->fileName());
@@ -65,17 +70,17 @@ void RecentlyUsedHandler::update()
             }
 
             if (!desktopFile->readName().isEmpty()) {
-                this->recentlyUsed.append(new ActivityEntry(
+                this->recentlyUsedApplications.append(new ActivityEntry(
                                               path,
                                               desktopFile->readIcon(),
                                               "",
                                               desktopFile->readName()));
             }
-        } else if (!mimetype.isEmpty()) {
+        } else if (recentlyUsedDocuments.length() < recentlyUsedCount && !mimetype.isEmpty()) {
             QString icon = QString(mimetype);
             icon = icon.replace("/", "-");
             QString name = resource.split("/").last();
-            this->recentlyUsed.append(new ActivityEntry(resource, icon, mimetype, name));
+            this->recentlyUsedDocuments.append(new ActivityEntry(resource, icon, mimetype, name));
         }
 
         ++resultIt;
@@ -84,7 +89,12 @@ void RecentlyUsedHandler::update()
     emit updated();
 }
 
-QQmlListProperty<ActivityEntry> RecentlyUsedHandler::getRecentlyUsed()
+QQmlListProperty<ActivityEntry> RecentlyUsedHandler::getRecentlyUsedApplications()
 {
-    return QQmlListProperty<ActivityEntry>(this, this->recentlyUsed);
+    return QQmlListProperty<ActivityEntry>(this, this->recentlyUsedApplications);
+}
+
+QQmlListProperty<ActivityEntry> RecentlyUsedHandler::getRecentlyUsedDocuments()
+{
+    return QQmlListProperty<ActivityEntry>(this, this->recentlyUsedDocuments);
 }
