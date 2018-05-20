@@ -46,10 +46,20 @@ Item {
         }
     }
 
+    Component {
+        id: submenuComponent
+        PlasmaComponents.ContextMenu {
+            id: submenu
+            visualParent: recentActivities.action
+        }
+    }
+
     Connections {
         target: RecentlyUsedHandler
         onUpdated: {
-            submenu.addSection("Applications");
+            var submenuObject = submenuComponent.createObject(recentActivities);
+
+            submenuObject.addSection("Applications");
 
             for(var i = 0; i < RecentlyUsedHandler.recentlyUsedApplications.length; i++) {
                 var item = RecentlyUsedHandler.recentlyUsedApplications[i];
@@ -59,12 +69,15 @@ Item {
                 params.iconRes = item.icon;
                 params.mimetype = item.mimetype;
                 var item = submenuItem.createObject(null, params);
-                submenu.addMenuItem(item, null);
+                submenuObject.addMenuItem(item, null);
+                ctxMenu.recentActivitiesItems.push(item);
             }
 
-            var item = Qt.createQmlObject("import org.kde.plasma.components 2.0 as PlasmaComponents; PlasmaComponents.MenuItem {separator: true}", submenu);
-            submenu.addMenuItem(item, null);
-            submenu.addSection("Documents");
+            var item = Qt.createQmlObject("import org.kde.plasma.components 2.0 as PlasmaComponents; PlasmaComponents.MenuItem {separator: true}", submenuObject);
+            ctxMenu.recentActivitiesItems.push(item);
+            submenuObject.addMenuItem(item, null);
+
+            submenuObject.addSection("Documents");
             
             for(var i = 0; i < RecentlyUsedHandler.recentlyUsedDocuments.length; i++) {
                 var item = RecentlyUsedHandler.recentlyUsedDocuments[i];
@@ -74,8 +87,11 @@ Item {
                 params.iconRes = item.icon;
                 params.mimetype = item.mimetype;
                 var item = submenuItem.createObject(null, params);
-                submenu.addMenuItem(item, null);
+                submenuObject.addMenuItem(item, null);
+                ctxMenu.recentActivitiesItems.push(item);
             }
+
+            ctxMenu.recentActivitiesSubmenu = submenuObject;
         }
     }
 
@@ -107,11 +123,13 @@ Item {
 
             onTriggered: {
                 if (isClosed()) {
-                    for(var i = submenu.content.length-1; i >= 0 ; i--) {
-                        var item = submenu.content[i];
-                        submenu.removeMenuItem(item);
+                    for(var i = ctxMenu.recentActivitiesSubmenu.content.length-1; i >=0; i--) {
+                        var item = ctxMenu.recentActivitiesSubmenu.content[i];
+                        ctxMenu.recentActivitiesSubmenu.removeMenuItem(item)
                         item.destroy();
-                    };
+                    }
+
+                    ctxMenu.recentActivitiesSubmenu.destroy();
                     gc();
                     RecentlyUsedHandler.update();
                 }
@@ -126,6 +144,9 @@ Item {
         PlasmaComponents.ContextMenu {
             id: ctxMenu
             minimumWidth: ctxMenuWrapper.width
+
+            property var recentActivitiesSubmenu
+            property var recentActivitiesItems: []
             
             Component.onCompleted: {
                 ctxMenu.updateCount = ApplicationLauncher.getUpdateCount();
@@ -169,11 +190,6 @@ Item {
             PlasmaComponents.MenuItem {
                 id: recentActivities
                 text: i18n("Recent Items")
-                
-                PlasmaComponents.ContextMenu {
-                    id: submenu
-                    visualParent: recentActivities.action
-                }
             }
 
             PlasmaComponents.MenuItem {
