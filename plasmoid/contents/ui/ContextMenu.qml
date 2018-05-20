@@ -150,7 +150,7 @@ Item {
 
             PlasmaComponents.MenuItem {
                 id: recentActivities
-                text: i18n("Recently Used")
+                text: i18n("Recent Items")
                 
                 PlasmaComponents.ContextMenu {
                     id: submenu
@@ -172,7 +172,7 @@ Item {
             }
 
             PlasmaComponents.MenuItem {
-                text: i18n("Reboot...")
+                text: i18n("Restart...")
 
                 onClicked: {
                     maskMouseArea.enabled = false;
@@ -181,7 +181,7 @@ Item {
             }
 
             PlasmaComponents.MenuItem {
-                text: i18n("Shutdown...")
+                text: i18n("Shut Down...")
 
                 onClicked: {
                     maskMouseArea.enabled = false;
